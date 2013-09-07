@@ -24,7 +24,7 @@ module Snapa
     end
 
     def build(env)
-      system [cmd, script, url(env), @path].join(' ')
+      system [cmd, script, "'#{url(env)}'", "'#{@path}'"].join(' ')
     end
 
     def path(env)
