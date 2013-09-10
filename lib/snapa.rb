@@ -28,7 +28,7 @@ module Snapa
     end
 
     def path(env)
-      @path ||= ::File.join('tmp', query_string(env) + '.png')
+      @path ||= ::File.join('/tmp', query_string(env) + '.png')
     end
 
     def _call(env)
