@@ -9,7 +9,7 @@ body {
 .subunit {
   fill: #D7D7D7;
   stroke: #F2F2F2;
-  stroke-width: 2;
+  stroke-width: 1.5;
 }
 .subunit.highlight {
   fill: #658436;
@@ -32,9 +32,10 @@ function getParameterByName(name) {
 var countries = (getParameterByName('c') || 'TZ').toUpperCase().split(','),
     width = getParameterByName('w') || 380,
     height = getParameterByName('h') || 230,
-    rotation = getParameterByName('r') || 0,
-    percent = getParameterByName('p') || .95,
-    maxScale = getParameterByName('m') || 300;
+    rotation = eval(getParameterByName('r')),
+    scale = eval(getParameterByName('s')),
+    percent = getParameterByName('p') || .80,
+    highlight;
 
 var svg = d3.select("body").append("svg")
     .attr("width", width)
@@ -42,33 +43,39 @@ var svg = d3.select("body").append("svg")
 
 var projection = d3.geo.mercator()
     .scale(1)
-    .rotate(rotation)
-    .translate([0, 0]);
+    .translate([width / 2, height / 2]);
 
 var path = d3.geo.path()
     .projection(projection);
 
 d3.json("countries.json", function(error, world) {
-  var bounds = [[Number.MAX_VALUE, Number.MAX_VALUE], [Number.MIN_VALUE, Number.MIN_VALUE]],
-      features = topojson.feature(world, world.objects.countries).features;
+  var features = topojson.feature(world, world.objects.countries).features;
 
   for (var i = 0; i < features.length; i++) {
     if (countries.indexOf(features[i].id) !== -1) {
-      var b = path.bounds(features[i]);
-      bounds = [
-        [Math.min(bounds[0][0], b[0][0]), Math.min(bounds[0][1], b[0][1])],
-        [Math.max(bounds[1][0], b[1][0]), Math.max(bounds[1][1], b[1][1])]
-      ];
+      if (highlight === undefined) {
+        highlight = JSON.parse(JSON.stringify(features[i]));
+      } else {
+        highlight.geometry.coordinates = d3.merge([highlight.geometry.coordinates, features[i].geometry.coordinates])
+      }
     }
   }
 
-  var scale = percent / Math.max((bounds[1][0] - bounds[0][0]) / width, (bounds[1][1] - bounds[0][1]) / height),
-      scale = Math.min(scale, maxScale),
-      translate = [(width - scale * (bounds[1][0] + bounds[0][0])) / 2, (height - scale * (bounds[1][1] + bounds[0][1])) / 2];
+  if (rotation === undefined) {
+    var centroid = d3.geo.centroid(highlight);
+    rotation = [-centroid[0], -centroid[1]]
+  }
 
   projection
-      .scale(scale)
-      .translate(translate);
+      .rotate(rotation);
+
+  if (scale === undefined) {
+    var bounds = path.bounds(highlight);
+    scale = percent / Math.max((bounds[1][0] - bounds[0][0]) / width, (bounds[1][1] - bounds[0][1]) / height);
+  }
+
+  projection
+      .scale(scale);
 
   svg.selectAll("path")
       .data(features)
