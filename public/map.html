@@ -32,8 +32,8 @@ function getParameterByName(name) {
 var countries = (getParameterByName('c') || 'TZ').toUpperCase().split(','),
     width = getParameterByName('w') || 380,
     height = getParameterByName('h') || 230,
-    rotation = eval(getParameterByName('r')),
-    scale = eval(getParameterByName('s')),
+    rotation = getParameterByName('r').split(','),
+    scale = getParameterByName('s'),
     percent = getParameterByName('p') || .80,
     highlight;
 
@@ -61,7 +61,7 @@ d3.json("countries.json", function(error, world) {
     }
   }
 
-  if (rotation === undefined) {
+  if (rotation[0] === '') {
     var centroid = d3.geo.centroid(highlight);
     rotation = [-centroid[0], -centroid[1]]
   }
@@ -69,7 +69,7 @@ d3.json("countries.json", function(error, world) {
   projection
       .rotate(rotation);
 
-  if (scale === undefined) {
+  if (scale === '') {
     var bounds = path.bounds(highlight);
     scale = percent / Math.max((bounds[1][0] - bounds[0][0]) / width, (bounds[1][1] - bounds[0][1]) / height);
   }
