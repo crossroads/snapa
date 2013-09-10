@@ -3,36 +3,31 @@ require 'rack/file'
 
 module Snapa
   class File < Rack::File
-    def query_string(env)
-      env["QUERY_STRING"].to_s
-    end
 
     def cmd
       'phantomjs'
     end
 
     def script
-      ::File.expand_path('../snapa.js', __FILE__)
+      F.expand_path('../snapa.js', __FILE__)
     end
 
-    def map
-      ::File.expand_path('../../public/map.html', __FILE__)
+    def url(request)
+      [@root, request.query_string].join('?')
     end
 
-    def url(env)
-      [@root === :map ? map : @root, query_string(env)].join('?')
+    def build(request)
+      system [cmd, script, "'#{url(request)}'", "'#{@path}'"].join(' ')
     end
 
-    def build(env)
-      system [cmd, script, "'#{url(env)}'", "'#{@path}'"].join(' ')
-    end
-
-    def path(env)
-      @path ||= ::File.join('tmp', query_string(env) + '.png')
+    def path(request)
+      @path ||= F.join('/tmp/snapa', request.query_string + '.png')
     end
 
     def _call(env)
-      build(env) unless F.file?(path(env))
+      request = ::Rack::Request.new(env)
+
+      build(request) unless F.file?(path(request))
 
       serving(env)
     end
