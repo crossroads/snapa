@@ -6,6 +6,9 @@
 body {
   margin: 0;
 }
+svg {
+  display: block;
+}
 .subunit {
   fill: #D7D7D7;
   stroke: #F2F2F2;
@@ -30,7 +33,7 @@ function getParameterByName(name) {
 }
 
 var countries = (getParameterByName('c') || 'TZ').toUpperCase().split(','),
-    width = getParameterByName('w') || 380,
+    width = getParameterByName('w') || 400,
     height = getParameterByName('h') || 230,
     rotation = getParameterByName('r').split(','),
     scale = getParameterByName('s'),
@@ -63,7 +66,7 @@ d3.json("countries.json", function(error, world) {
 
   if (rotation[0] === '') {
     var centroid = d3.geo.centroid(highlight);
-    rotation = [-centroid[0], -centroid[1]]
+    rotation = [-centroid[0], -centroid[1], 0];
   }
 
   projection
@@ -72,6 +75,7 @@ d3.json("countries.json", function(error, world) {
   if (scale === '') {
     var bounds = path.bounds(highlight);
     scale = percent / Math.max((bounds[1][0] - bounds[0][0]) / width, (bounds[1][1] - bounds[0][1]) / height);
+    scale = Math.min(scale, 1000);
   }
 
   projection
