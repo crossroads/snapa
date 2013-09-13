@@ -32,6 +32,14 @@ function getParameterByName(name) {
     return results == null ? "" : decodeURIComponent(results[1].replace(/\+/g, " "));
 }
 
+function mergeGeometry(a, b) {
+    if (b.type === 'MultiPolygon') {
+        a.coordinates = a.coordinates.concat(b.coordinates)
+    } else {
+        a.coordinates.push(b.coordinates)
+    }
+}
+
 var countries = (getParameterByName('c') || 'TZ').toUpperCase().split(','),
     width = getParameterByName('w') || 400,
     height = getParameterByName('h') || 230,
@@ -51,25 +59,17 @@ var path = d3.geo.path()
     .projection(projection);
 
 d3.json("countries.json", function(error, world) {
-  var features = topojson.feature(world, world.objects.countries).features;
+  var features = topojson.feature(world, world.objects.countries).features,
+      highlight = {type: 'Feature', geometry: {type: 'MultiPolygon', coordinates: []}};
 
   for (var i = 0; i < features.length; i++) {
     if (countries.indexOf(features[i].id) !== -1) {
-      if (highlight === undefined) {
-        highlight = JSON.parse(JSON.stringify(features[i]));
-      } else {
-        highlight.geometry.coordinates = d3.merge([highlight.geometry.coordinates, features[i].geometry.coordinates])
-      }
+      mergeGeometry(highlight.geometry, features[i].geometry)
     }
   }
 
-  if (highlight === undefined) {
-    projection
-        .scale(50)
-        .translate([width / 2], [height / 2]);
-
-  } else {
-    var centroid = d3.geo.centroid(highlight);
+  var centroid = d3.geo.centroid(highlight);
+  if (!isNaN(centroid[0])) {
     if (rotation[0] === '') {
       rotation = [-centroid[0], 0, 0];
     }
@@ -86,6 +86,12 @@ d3.json("countries.json", function(error, world) {
     projection
         .scale(scale)
         .translate([width / 2, (height / 2) + centroid[1] * 2.77]);
+
+  } else {
+
+    projection
+        .scale(50)
+        .translate([width / 2, height / 2]);
   }
 
   svg.selectAll("path")
