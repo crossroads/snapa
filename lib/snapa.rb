@@ -1,6 +1,6 @@
 require 'snapa/version'
 require 'rack/file'
-require 'digest'
+require 'digest/md5'
 
 module Snapa
   class File < Rack::File
@@ -22,7 +22,7 @@ module Snapa
     end
 
     def path(request)
-      @path ||= F.join('/tmp/snapa', ::Digest.hexencode(request.query_string) + '.png')
+      @path ||= F.join('/tmp/snapa', ::Digest::MD5.hexdigest(request.query_string) + '.png')
     end
 
     def _call(env)
