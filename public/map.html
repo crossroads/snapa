@@ -44,9 +44,8 @@ var svg = d3.select("body").append("svg")
     .attr("width", width)
     .attr("height", height);
 
-var projection = d3.geo.mercator()
-    .scale(1)
-    .translate([width / 2, height / 2]);
+window.projection = d3.geo.mercator()
+    .scale(1);
 
 var path = d3.geo.path()
     .projection(projection);
@@ -64,22 +63,30 @@ d3.json("countries.json", function(error, world) {
     }
   }
 
-  if (rotation[0] === '') {
+  if (highlight === undefined) {
+    projection
+        .scale(50)
+        .translate([width / 2], [height / 2]);
+
+  } else {
     var centroid = d3.geo.centroid(highlight);
-    rotation = [-centroid[0], -centroid[1], 0];
-  }
+    if (rotation[0] === '') {
+      rotation = [-centroid[0], 0, 0];
+    }
 
-  projection
-      .rotate(rotation);
+    projection
+        .rotate(rotation);
 
-  if (scale === '') {
     var bounds = path.bounds(highlight);
-    scale = percent / Math.max((bounds[1][0] - bounds[0][0]) / width, (bounds[1][1] - bounds[0][1]) / height);
-    scale = Math.min(scale, 1000);
-  }
+    if (scale === '') {
+      scale = percent / Math.max((bounds[1][0] - bounds[0][0]) / width, (bounds[1][1] - bounds[0][1]) / height);
+      scale = Math.min(scale, 300);
+    }
 
-  projection
-      .scale(scale);
+    projection
+        .scale(scale)
+        .translate([width / 2, (height / 2) + centroid[1] * 2.77]);
+  }
 
   svg.selectAll("path")
       .data(features)
