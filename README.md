@@ -31,6 +31,10 @@ To mount under Rails
     config/routes.rb
     mount Snapa::File.new('public/map.html') => '/map.png'
 
+The default cache path is /tmp/snapa or public/system/snapa when mounted
+under a rails app. This can be overridden by passing an optional cache_path
+param to the initializer.
+
 ## Contributing
 
 1. Fork it

@@ -5,6 +5,11 @@ require 'digest/md5'
 module Snapa
   class File < Rack::File
 
+    def initialize(root, options={})
+      @cache_path = options[:cache_path]
+      super(root)
+    end
+
     def cmd
       'phantomjs'
     end
@@ -21,8 +26,12 @@ module Snapa
       system [cmd, script, "'#{url(request)}'", "'#{@path}'"].join(' ')
     end
 
+    def cache_path
+      @cache_path ||= defined?(Rails) ? Rails.root.join('public/system') : '/tmp'
+    end
+
     def path(request)
-      @path ||= F.join('/tmp/snapa', ::Digest::MD5.hexdigest(request.query_string) + '.png')
+      @path ||= F.join(cache_path, 'snapa', ::Digest::MD5.hexdigest(request.query_string) + '.png')
     end
 
     def _call(env)

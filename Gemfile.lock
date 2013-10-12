@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    snapa (0.0.6)
+    snapa (0.0.7)
       rack
 
 GEM
