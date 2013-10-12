@@ -13,7 +13,7 @@ Gem::Specification.new do |spec|
 of the rendered body / css selector, usefull for generating an IE friendly
 version of an svg or html5 canvas. A map example is provided by passing :map
 to the initializer.}
-  spec.homepage      = ""
+  spec.homepage      = "https://github.com/crossroads/snapa"
   spec.license       = "MIT"
 
   spec.files         = `git ls-files`.split($/)
